@@ -1,0 +1,34 @@
+{
+  "data": {
+    "COMMON": {
+      "percentageOfPrice": 85,
+      "lastSales": 20,
+      "minPrice": 10,
+      "averageScore": 20
+    },
+    "LIMITED": {
+      "percentageOfPrice": 85,
+      "lastSales": 20,
+      "minPrice": 10,
+      "averageScore": 20
+    },
+    "RARE": {
+      "percentageOfPrice": 85,
+      "lastSales": 20,
+      "minPrice": 10,
+      "averageScore": 20
+    },
+    "SUPER_RARE": {
+      "percentageOfPrice": 85,
+      "lastSales": 20,
+      "minPrice": 10,
+      "averageScore": 20
+    },
+    "UNIQUE": {
+      "percentageOfPrice": 85,
+      "lastSales": 20,
+      "minPrice": 10,
+      "averageScore": 20
+    }
+  }
+}
