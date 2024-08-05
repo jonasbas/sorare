@@ -1,34 +1,32 @@
 {
   "data": {
-    "COMMON": {
+    "limited": {
       "percentageOfPrice": 85,
       "lastSales": 20,
       "minPrice": 10,
-      "averageScore": 20
+      "averageScore": 20,
+      "positions": [
+        "Defender",
+        "Forward",
+        "Goalkeeper",
+        "Midfielder"
+      ],
+      "last15SO5Appearances": 8,
+      "inSeason": false
     },
-    "LIMITED": {
+    "rare": {
       "percentageOfPrice": 85,
       "lastSales": 20,
       "minPrice": 10,
-      "averageScore": 20
-    },
-    "RARE": {
-      "percentageOfPrice": 85,
-      "lastSales": 20,
-      "minPrice": 10,
-      "averageScore": 20
-    },
-    "SUPER_RARE": {
-      "percentageOfPrice": 85,
-      "lastSales": 20,
-      "minPrice": 10,
-      "averageScore": 20
-    },
-    "UNIQUE": {
-      "percentageOfPrice": 85,
-      "lastSales": 20,
-      "minPrice": 10,
-      "averageScore": 20
+      "averageScore": 20,
+      "positions": [
+        "Defender",
+        "Forward",
+        "Goalkeeper",
+        "Midfielder"
+      ],
+      "last15SO5Appearances": 10,
+      "inSeason": false
     }
   }
 }
