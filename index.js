@@ -4,8 +4,6 @@ import chalk from "chalk";
 import config from "./config.json" assert {type: 'json'};
 
 const API_KEY = 'c3a68bc9e201bd3f0150c7ecd9cdeb3f997d8415750207ec36acc55ae9e6ba9fdea08ff136fe60c2a8b6b491f699f783f212dbe2819d144b80d97181b95sr128';
-const SALES_TO_COMPARE = 5;
-const PERCENTAGE_TO_CHECK = 80.0;
 
 const Subscription = gql`
 aCardWasUpdated(events: [offer_event_accepted]) 
@@ -62,48 +60,46 @@ async function startCheck() {
 
 function handleData(data) {
   if (!data["result"]["data"]["aCardWasUpdated"]) {
-    // console.log("result is null");
     return;
   }
 
   const owner = data["result"]["data"]["aCardWasUpdated"]["tokenOwner"];
   if (!owner) {
-    console.log(error("No owner found!"))
     return;
   }
 
   const amounts = data["result"]["data"]["aCardWasUpdated"]["tokenOwner"]["amounts"];
   if (!amounts) {
-    console.log(error("No price found!"))
-    //console.log(data["result"])
     return;
   }
 
   const price = data["result"]["data"]["aCardWasUpdated"]["tokenOwner"]["amounts"]["eur"] / 100.00;
   if (!price) {
-    console.log(error("No price found!"))
-    //console.log(data["result"])
     return;
   }
 
   const rarity = data["result"]["data"]["aCardWasUpdated"]["rarity"];
-  console.log(rarity)
+
+  if (rarity !== "limited" && rarity !== "rare") {
+    return;
+  }
+
+  if (price < config["data"][rarity]["minPrice"]) {
+    return;
+  }
 
   const position = data["result"]["data"]["aCardWasUpdated"]["player"]["position"]
   if (!config["data"][rarity]["positions"].includes(position)) {
-    console.log(error("Position passt nicht"))
     return;
   }
 
   const inSeason = data["result"]["data"]["aCardWasUpdated"]["inSeasonEligible"]
   if (!config["data"][rarity]["inSeason"] === inSeason) {
-    console.log(error("Season passt nicht"))
     return;
   }
 
   const lastAppearances = data["result"]["data"]["aCardWasUpdated"]["player"]["lastFifteenSo5Appearances"]
   if (lastAppearances <= config["data"][rarity]["last15SO5Appearances"]) {
-    console.log(error("Apperances passt nicht"))
     return;
   }
 
@@ -114,32 +110,30 @@ function handleData(data) {
   //create only player slug
   const cleanedSlug = splittedSlug.slice(0, slugLength - 3).join("-");
 
-  queryLastPrices(rarity, cleanedSlug, price, slug);
+  queryLastPrices(rarity, cleanedSlug, price, slug, inSeason);
 }
 
-async function queryLastPrices(rarity, playerSlug, priceSold, wholeSlug) {
+async function queryLastPrices(rarity, playerSlug, priceSold, wholeSlug, inSeason) {
   const graphQLClient = new GraphQLClient("https://api.sorare.com/federation/graphql", {
     headers: {
       'APIKEY': API_KEY,
     },
   });
 
-  const data = await graphQLClient.request(getPriceQuery(rarity, playerSlug));
+  const data = await graphQLClient.request(getPriceQuery(rarity, playerSlug, inSeason));
   const priceArray = data["tokens"]["tokenPrices"];
 
   const pricesInEuro = priceArray.map((item) => item["amounts"]["eur"] / 100.00);
-  console.log(pricesInEuro)
-
   const priceCount = pricesInEuro.length;
-  console.log(priceCount)
 
   const averagePrice = pricesInEuro.reduce(
     (previous, current) => previous + current
     , 0.0) / priceCount;
   const percentageOfAverage = (priceSold / averagePrice) * 100;
 
-  if (percentageOfAverage > PERCENTAGE_TO_CHECK) {
-    console.log(error("Price not over threshhold!"))
+
+  const percentageToCheck = config["data"][rarity]["percentageOfPrice"]
+  if (percentageOfAverage > percentageToCheck) {
     return;
   }
 
@@ -155,11 +149,13 @@ async function queryLastPrices(rarity, playerSlug, priceSold, wholeSlug) {
   console.log("--------------------------------------------------------------------------");
 }
 
-function getPriceQuery(rarity, playerSlug) {
+function getPriceQuery(rarity, playerSlug, inSeason) {
+  const compare = config["data"][rarity]["lastSales"]
+  const season = inSeason ? "IN_SEASON" : "CLASSIC"
   return gql`
     query LastPrices {
       tokens {
-        tokenPrices(first: ${SALES_TO_COMPARE}, rarity: ${rarity}, playerSlug: "${playerSlug}", seasonEligibility: CLASSIC) {
+        tokenPrices(first: ${compare}, rarity: ${rarity}, playerSlug: "${playerSlug}", seasonEligibility: ${season}) {
           amounts {
             eur
           }
@@ -170,7 +166,6 @@ function getPriceQuery(rarity, playerSlug) {
 }
 
 function startProgramm() {
-  console.log(config["data"]["COMMON"]);
   console.log("Starting sorare fetch v0.1");
   try {
     startCheck();
